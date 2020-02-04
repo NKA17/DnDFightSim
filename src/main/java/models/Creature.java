@@ -26,6 +26,36 @@ public class Creature {
     private int legendaryActionPointPool = 0;
     private int legendaryActionPoints = 0;
     private List<Action> legendaryActions = new ArrayList<>();
+    private SpellSlots spellSlots = new SpellSlots();
+    private SpellSlots remainingSpellSlots = new SpellSlots();
+
+    public void resetSpellSlots(){
+        remainingSpellSlots.setLevel_one_slots(spellSlots.getLevel_one_slots());
+        remainingSpellSlots.setLevel_two_slots(spellSlots.getLevel_two_slots());
+        remainingSpellSlots.setLevel_three_slots(spellSlots.getLevel_three_slots());
+        remainingSpellSlots.setLevel_four_slots(spellSlots.getLevel_four_slots());
+        remainingSpellSlots.setLevel_five_slots(spellSlots.getLevel_five_slots());
+        remainingSpellSlots.setLevel_six_slots(spellSlots.getLevel_six_slots());
+        remainingSpellSlots.setLevel_seven_slots(spellSlots.getLevel_seven_slots());
+        remainingSpellSlots.setLevel_eight_slots(spellSlots.getLevel_eight_slots());
+        remainingSpellSlots.setLevel_nine_slots(spellSlots.getLevel_nine_slots());
+    }
+    public SpellSlots getSpellSlots() {
+        return spellSlots;
+    }
+
+    public void setSpellSlots(SpellSlots spellSlots) {
+        this.spellSlots = spellSlots;
+        resetSpellSlots();
+    }
+
+    public SpellSlots getRemainingSpellSlots() {
+        return remainingSpellSlots;
+    }
+
+    public void setRemainingSpellSlots(SpellSlots remainingSpellSlots) {
+        this.remainingSpellSlots = remainingSpellSlots;
+    }
 
     public int getMaxHp() {
         return maxHp;

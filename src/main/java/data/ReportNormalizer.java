@@ -35,7 +35,7 @@ public class ReportNormalizer {
             List<Point> points = normalizedMap.get(c);
             Point lastPoint = points.get(points.size()-1);
             for(int i = lastPoint.x+1; i <= highestX; i++){
-               // points.add(new Point(i,lastPoint.y));
+                points.add(new Point(i,lastPoint.y));
             }
         }
 

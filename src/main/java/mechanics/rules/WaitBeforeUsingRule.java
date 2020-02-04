@@ -4,33 +4,35 @@ import data.Copiable;
 import models.Action;
 import models.Creature;
 
-public class AvailabilityRule implements UseRule, Copiable {
+public class WaitBeforeUsingRule implements UseRule, Copiable {
 
-    private int uses;
-    private int remaining;
+    private int waits = 0;
+    private int count = 0;
 
-    public AvailabilityRule(int uses) {
-        this.uses = uses;
-        remaining = uses;
+    public WaitBeforeUsingRule(int waits) {
+        this.waits = waits;
     }
 
     @Override
     public void reset() {
-        remaining = uses;
+        count = 0;
     }
 
     @Override
     public boolean canUse(Creature self, Creature target, Action action, boolean parentSuccess) {
-        return remaining > 0;
+        boolean use = count > waits;
+        count++;
+        return use;
     }
 
     @Override
     public void use(Creature self, Creature target, Action action) {
-        remaining--;
+
     }
 
     @Override
     public Copiable copy() {
-        return new AvailabilityRule(uses);
+        WaitBeforeUsingRule copy = new WaitBeforeUsingRule(waits);
+        return copy;
     }
 }

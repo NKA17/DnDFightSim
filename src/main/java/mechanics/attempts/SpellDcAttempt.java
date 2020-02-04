@@ -1,16 +1,18 @@
 package mechanics.attempts;
 
+import mechanics.utils.DCUtils;
 import models.Action;
 import models.Creature;
-
-import java.util.Random;
+import models.Cantrip;
 
 public class SpellDcAttempt implements Attempt {
-    private static Random random = new Random(100023L);
 
     @Override
     public boolean attempt(Action action, Creature self, Creature target) {
-        //TODO
-        return false;
+        Cantrip spell = (Cantrip)action;
+        int dc = DCUtils.determineDC(8,self,spell.getUserAttribute());
+        boolean save = DCUtils.makeSave(dc,target,spell.getTargetAttribute());
+
+        return !save;
     }
 }

@@ -1,11 +1,12 @@
 package models;
 
+import data.Copiable;
 import models.misc.DnD5eDamage;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Damage {
+public class Damage implements Copiable {
     private int diceCount;
     private int diceSize;
     private int damageBonus;
@@ -15,6 +16,16 @@ public class Damage {
 
     public Damage(String damage){
         setDamage(damage);
+    }
+
+    @Override
+    public Copiable copy() {
+        Damage d = new Damage();
+        d.diceCount = diceCount;
+        d.diceSize = diceSize;
+        d.damageBonus = damageBonus;
+        d.damageType = damageType;
+        return d;
     }
 
     public String getDamageDice() {

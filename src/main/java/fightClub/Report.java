@@ -10,6 +10,14 @@ public class Report {
     private List<String> notes = new ArrayList<>();
     private HashMap<Object, Object> stats = new HashMap<>();
 
+    public void incrementStat(Object key,double value){
+        if(stats.containsKey(key)){
+            stats.put(key,(double)stats.get(key)+value);
+        }else {
+            stats.put(key,value);
+        }
+    }
+
     public HashMap<Object, Object> getStats() {
         return stats;
     }

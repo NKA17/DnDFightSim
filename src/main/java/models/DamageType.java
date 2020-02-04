@@ -4,6 +4,7 @@ package models;
 public enum DamageType {
     OTHER("OTHER"),
     BLUDGEONING("BLUDGEONING"),
+    ACID("ACID"),
     COLD("COLD"),
     SLASHING("SLASHING"),
     PIERCING("PIERCING"),

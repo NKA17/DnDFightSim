@@ -16,6 +16,12 @@ public class MeleeAttempt implements Attempt {
         int roll = random.nextInt(20)+1;
         int attack = roll + self.getProficiencyBonus() + self.getAttributesBlock().getAttributeModifier(bestAttribute);
 
-        return attack >= target.getAc();
+        boolean success = attack >= target.getAc();
+
+        if(!success){
+            System.out.println(self.getName()+" used "+action.getName()+" on "+target.getName()+" but missed!");
+        }
+
+        return success;
     }
 }

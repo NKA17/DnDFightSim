@@ -1,9 +1,9 @@
 package fightClub;
 
+import mechanics.effects.DamageEffect;
+import mechanics.effects.Effect;
 import models.*;
-import org.w3c.dom.Attr;
 
-import java.lang.reflect.AnnotatedType;
 import java.util.List;
 
 public class FightUtils {
@@ -44,6 +44,8 @@ public class FightUtils {
         for(Action action: actions){
             if(highest == null){
                 highest = action;
+                highestAve = getAvePotentialDamage(action, target.getVulnerabilities(),
+                        target.getResistances(),target.getImmunities());
             }else{
                 int damage = getAvePotentialDamage(action, target.getVulnerabilities(),
                         target.getResistances(),target.getImmunities());
@@ -62,14 +64,6 @@ public class FightUtils {
         return getHighestDamageAction(creature.getActions(),target);
     }
 
-    public static int getAvePotentialDamage(Action action){
-        int total = 0;
-        for(Damage d: action.getDamage()){
-            total += d.average();
-        }
-
-        return total;
-    }
 
     public static int getAvePotentialDamage(Action action, Creature target){
         return getAvePotentialDamage(action, target.getVulnerabilities(),
@@ -93,21 +87,19 @@ public class FightUtils {
                                       List<DamageType> immunities){
         int total = 0;
 
-        for(Damage d: action.getDamage()){
-            int damage = d.average();
-            if(vulnerabilities.contains(d.getDamageType())){
-                damage *= 2;
-            }else if(resistances.contains(d.getDamageType())){
-                damage /= 2;
-            }else if(immunities.contains(d.getDamageType())){
-                damage = 0;
+        for(Effect e: action.getEffects()){
+            if(e instanceof DamageEffect){
+                Damage d = ((DamageEffect)e).getDamage();
+                int damage = d.average();
+                if(vulnerabilities.contains(d.getDamageType())){
+                    damage *= 2;
+                }else if(resistances.contains(d.getDamageType())){
+                    damage /= 2;
+                }else if(immunities.contains(d.getDamageType())){
+                    damage = 0;
+                }
+                total += damage;
             }
-
-            total += damage;
-        }
-
-        for(Action subAction: action.getSubsequentActions()){
-            //total += getAvePotentialDamage(subAction,vulnerabilities,resistances,immunities);
         }
 
         return total;

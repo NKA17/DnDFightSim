@@ -16,10 +16,13 @@ public class FightSimulation {
     private Report initiativeReport;
     private Report deathsOnTurn;
     private Random random;
+    private Report killReport;
 
     public FightSimulation(Scene scene) {
         deathsOnTurn = new Report();
         deathsOnTurn.setReportName("Deaths");
+        killReport = new Report();
+        killReport.setReportName("Kill Report");
         originalScene = scene;
         random = new Random(1570035L);
     }
@@ -41,6 +44,7 @@ public class FightSimulation {
                 for(Action a: c.getLegendaryActions()){
                     a.resetRules();
                 }
+                c.resetSpellSlots();
             }
         }
 
@@ -86,6 +90,13 @@ public class FightSimulation {
             System.out.println(c.getName()+" died "+turns.size()+" times. Typically on round "+ave);
         }
 
+        System.out.println("----------");
+        iter = killReport.getStats().keySet().iterator();
+        while (iter.hasNext()){
+            Creature key = (Creature)iter.next();
+            double count = (double)killReport.getStat(key);
+            System.out.println(key.getName()+" had "+count+" kills. Average "+(count/simulations)+" per combat.");
+        }
         return reports;
     }
 
@@ -136,6 +147,8 @@ public class FightSimulation {
     public Report round(int round, Team t1, Team t2){
         Report report = new Report();
         report.setReportName("Round "+(round));
+        System.out.println(report.getReportName()+" -------");
+
         List<Creature> legendaries = new ArrayList<>();
 
         List<Creature> allCreatures = new ArrayList<>();
@@ -176,7 +189,6 @@ public class FightSimulation {
             }
         }
 
-        System.out.println(report.getReportName()+" -------");
         for(String s: report.getNotes()){
             System.out.println(s);
         }
@@ -186,7 +198,7 @@ public class FightSimulation {
         return report;
     }
 
-    private void kill(Creature dead, List<Creature> creatureTeam, int round){
+    private void kill(Creature killer, Creature dead, List<Creature> creatureTeam, int round){
         creatureTeam.remove(dead);
         List<Integer> turns;
         if(deathsOnTurn.getStats().containsKey(dead)){
@@ -196,6 +208,8 @@ public class FightSimulation {
             deathsOnTurn.addStat(dead,turns);
         }
         turns.add(round);
+
+        killReport.incrementStat(killer,1);
     }
 
     private Report hpChart(){
@@ -224,22 +238,14 @@ public class FightSimulation {
         }
 
         Creature target = enemyTeam.get(random.nextInt(enemyTeam.size()));
-        List<Action> availableActions = new ArrayList<>(creature.getLegendaryActions());
-        for(int i = 0; i < availableActions.size(); i++){
-            if(availableActions.get(i).getCost() > creature.getLegendaryActionPointPool()){
-                availableActions.remove(availableActions.get(i));
-                i--;
-            }
-        }
+        List<Action> availableActions = getAvailableActions(creature.getLegendaryActions(),creature,target);
+
         Action useAction = availableActions.get(random.nextInt(availableActions.size()));
-        creature.setLegendaryActionPointPool(creature.getLegendaryActionPointPool() - useAction.getCost());
-        attack(report,creature,target,useAction,round);
-        for(int i = 0; i < report.getNotes().size(); i++){
-            report.getNotes().set(i,"Legendary Action: "+report.getNotes().get(i));
-        }
+        useAction.use(creature,target);
         if(isDead(target)){
-            report.addNote("%s died!", target.getName());
-            kill(target,enemyTeam,round);
+            //report.addNote("%s died!", target.getName());
+            System.out.println(String.format("%s died!", target.getName()));
+            kill(creature,target,enemyTeam,round);
         }
 
         return report;
@@ -260,8 +266,9 @@ public class FightSimulation {
         Report attackReport = attack(round,creature,target);
         report.getNotes().addAll(attackReport.getNotes());
         if(isDead(target)){
-            report.addNote("%s died!", target.getName());
-            kill(target,enemyTeam,round);
+            //report.addNote("%s died!", target.getName());
+            System.out.println(String.format("%s died!", target.getName()));
+            kill(creature,target,enemyTeam,round);
         }
 
         return report;
@@ -271,46 +278,24 @@ public class FightSimulation {
 
         List<Action> available = getAvailableActions(attacker.getActions(),attacker,target);
         Action useAction = FightUtils.getHighestDamageAction(available,target);
-        attack(report,attacker,target,useAction,round);
-        for(Action action: useAction.getSubsequentActions()){
-            attack(report,attacker,target,action,round);
+        if(useAction != null) {
+            useAction.use(attacker, target);
+        }else {
+            List<Action> a = getAvailableActions(attacker.getActions(),attacker,target);
+            Action b = FightUtils.getHighestDamageAction(available,target);
+            int i = 2+3;
         }
+
+        List<Point> hpList = (ArrayList<Point>)hpReport.getStat(target);
+        for(Point p: hpList){
+            if(p.x == round) {
+                p.y = target.getHp();
+                return report;
+            }
+        }
+        hpList.add(new Point(round,target.getHp()));
 
         return report;
-    }
-
-    private void attack(Report report, Creature attacker, Creature target,Action useAction,int round){
-        double toHit = FightUtils.getChanceToHit(useAction,attacker,target);
-
-        boolean hit = toHit >= random.nextDouble();
-
-        int damage = hit ? FightUtils.getAvePotentialDamage(useAction,attacker,target) : 0;
-        damage(target,round,damage);
-
-        if(hit){
-            report.addNote("%s attacks %s with %s! Hit for %d damage!",attacker.getName(),target.getName(),
-                    useAction.getName(),damage);
-            for(Damage d: useAction.getHeal()){
-                damage(attacker,round, - d.average());
-                report.addNote("%s healed for %d HP!",attacker.getName(),d.average());
-            }
-        }else{
-            report.addNote("%s attacks %s with %s! It's a miss!",attacker.getName(),target.getName(),useAction.getName());
-        }
-    }
-
-    private void damage(Creature c,int round, int damage){
-        List<Point> hpList = (ArrayList<Point>)hpReport.getStat(c);
-
-
-        int newHp = (((Point)hpList.get(hpList.size() - 1)).y - damage);
-        for(Point p: hpList){
-            if(p.x == round){
-                p.y -= damage;
-                return;
-            }
-        }
-        hpList.add(new Point(round, newHp));
     }
 
     private boolean isDead(Creature c){

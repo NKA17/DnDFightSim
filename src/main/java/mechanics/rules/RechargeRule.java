@@ -11,7 +11,7 @@ public class RechargeRule implements UseRule {
     private boolean charged = true;
     private static Random random = new Random(100023L);
 
-    public RechargeRule(int[] rechargeOn) {
+    public RechargeRule(int... rechargeOn) {
         this.rechargeOn = rechargeOn;
     }
 
@@ -21,13 +21,15 @@ public class RechargeRule implements UseRule {
     }
 
     @Override
-    public boolean canUse(Creature self, Creature target, Action action) {
+    public boolean canUse(Creature self, Creature target, Action action, boolean parentSuccess) {
         boolean c = charged;
 
         int rolled = random.nextInt(6)+1;
         for(int i : rechargeOn){
-            if(i==rolled)
+            if(i==rolled && !charged) {
                 charged = true;
+                System.out.println(self.getName()+" recharged "+action.getName());
+            }
         }
 
         return c;

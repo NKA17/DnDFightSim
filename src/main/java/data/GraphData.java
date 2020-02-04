@@ -21,9 +21,11 @@ public class GraphData{
             new Color(100,0,255),
             new Color(255,255,0),
             new Color(0,255,255),
+            new Color(10,245,170),
             new Color(255,0,255),
             new Color(170,100,100),
             new Color(255,150,30),
+            new Color(150,150,30),
     };
 
     public GraphData(HashMap<Object, List<Point>> lines) {
